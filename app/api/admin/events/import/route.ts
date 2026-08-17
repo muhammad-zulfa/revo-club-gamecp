@@ -2,7 +2,7 @@ import { EventCategory } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { createEventsWithReminders } from "@/lib/event-reminders";
-import { parseCsvLine } from "@/lib/events";
+import { parseCsvLine, parseDateTimeInputWithOffset } from "@/lib/events";
 
 function normalizeCategory(value: string) {
   const normalized = value.trim().toLowerCase();
@@ -21,6 +21,13 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const file = form.get("csvFile");
+  const timezoneOffsetMinutes = Number.parseInt(
+    String(form.get("timezoneOffsetMinutes") ?? "0"),
+    10,
+  );
+  const effectiveTimezoneOffset = Number.isFinite(timezoneOffsetMinutes)
+    ? timezoneOffsetMinutes
+    : 0;
 
   if (!(file instanceof File)) {
     return NextResponse.redirect(new URL("/events?error=csv", req.url), 303);
@@ -49,8 +56,14 @@ export async function POST(req: Request) {
 
   const data = lines.slice(1).map((line) => {
     const row = parseCsvLine(line);
-    const parsedStartAt = new Date(row[startIndex] ?? "");
-    const parsedEndAt = new Date(row[endIndex] ?? "");
+    const parsedStartAt = parseDateTimeInputWithOffset(
+      row[startIndex] ?? "",
+      effectiveTimezoneOffset,
+    );
+    const parsedEndAt = parseDateTimeInputWithOffset(
+      row[endIndex] ?? "",
+      effectiveTimezoneOffset,
+    );
 
     if (!row[titleIndex] || Number.isNaN(parsedStartAt.getTime()) || Number.isNaN(parsedEndAt.getTime()) || parsedEndAt <= parsedStartAt) {
       return null;

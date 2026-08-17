@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { FileUp, Plus, X } from "lucide-react";
 import { EventsCalendar } from "@/components/events-calendar";
 import { Shell } from "@/components/shell";
+import { TimezoneOffsetInput } from "@/components/timezone-offset-input";
 import { Card } from "@/components/ui";
 import { getSession } from "@/lib/auth";
 import { getEventsInRange } from "@/lib/data";
@@ -214,6 +215,7 @@ export default async function EventsPage({
                 method="post"
                 className="space-y-4"
               >
+                <TimezoneOffsetInput />
                 <label className="block">
                   <span className="mb-1.5 block text-sm font-medium text-slate-600">
                     Title
@@ -354,6 +356,7 @@ export default async function EventsPage({
                 encType="multipart/form-data"
                 className="space-y-4"
               >
+                <TimezoneOffsetInput />
                 <label className="block">
                   <span className="mb-1.5 block text-sm font-medium text-slate-600">
                     CSV file

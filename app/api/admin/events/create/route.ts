@@ -3,7 +3,12 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { sendDiscordEventReminder } from "@/lib/discord";
 import { createEventWithReminders, createEventsWithReminders } from "@/lib/event-reminders";
-import { buildRecurringDates, isEventRepeatFrequency } from "@/lib/events";
+import {
+  buildRecurringDates,
+  isEventRepeatFrequency,
+  parseDateInputWithOffset,
+  parseDateTimeInputWithOffset,
+} from "@/lib/events";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -23,13 +28,23 @@ export async function POST(req: Request) {
   const sendDiscordReminder = String(form.get("sendDiscordReminder") ?? "") === "on";
   const repeat = String(form.get("repeat") ?? "none").trim();
   const repeatUntil = String(form.get("repeatUntil") ?? "").trim();
+  const timezoneOffsetMinutes = Number.parseInt(
+    String(form.get("timezoneOffsetMinutes") ?? "0"),
+    10,
+  );
 
   if (!title || !startAt || !endAt) {
     return NextResponse.redirect(new URL("/events?error=missing", req.url), 303);
   }
 
-  const parsedStartAt = new Date(startAt);
-  const parsedEndAt = new Date(endAt);
+  const parsedStartAt = parseDateTimeInputWithOffset(
+    startAt,
+    Number.isFinite(timezoneOffsetMinutes) ? timezoneOffsetMinutes : 0,
+  );
+  const parsedEndAt = parseDateTimeInputWithOffset(
+    endAt,
+    Number.isFinite(timezoneOffsetMinutes) ? timezoneOffsetMinutes : 0,
+  );
 
   if (Number.isNaN(parsedStartAt.getTime()) || Number.isNaN(parsedEndAt.getTime()) || parsedEndAt <= parsedStartAt) {
     return NextResponse.redirect(new URL("/events?error=range", req.url), 303);
@@ -39,7 +54,13 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL("/events?error=repeat", req.url), 303);
   }
 
-  const parsedRepeatUntil = repeatUntil ? new Date(`${repeatUntil}T00:00:00`) : null;
+  const parsedRepeatUntil = repeatUntil
+    ? parseDateInputWithOffset(
+        repeatUntil,
+        Number.isFinite(timezoneOffsetMinutes) ? timezoneOffsetMinutes : 0,
+        true,
+      )
+    : null;
   const recurringDates = buildRecurringDates({
     startAt: parsedStartAt,
     endAt: parsedEndAt,

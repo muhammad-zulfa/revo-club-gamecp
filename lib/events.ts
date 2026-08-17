@@ -135,6 +135,70 @@ export function parseCsvLine(line: string) {
   return result;
 }
 
+export function parseDateTimeInputWithOffset(
+  input: string,
+  timezoneOffsetMinutes = 0,
+) {
+  const trimmed = input.trim();
+
+  if (!trimmed) {
+    return new Date(Number.NaN);
+  }
+
+  if (/z$/i.test(trimmed) || /[+-]\d{2}:\d{2}$/.test(trimmed)) {
+    return new Date(trimmed);
+  }
+
+  const match = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})[tT ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/,
+  );
+
+  if (!match) {
+    return new Date(trimmed);
+  }
+
+  const [, year, month, day, hour, minute, second = "0", millisecond = "0"] = match;
+
+  return new Date(
+    Date.UTC(
+      Number.parseInt(year, 10),
+      Number.parseInt(month, 10) - 1,
+      Number.parseInt(day, 10),
+      Number.parseInt(hour, 10),
+      Number.parseInt(minute, 10),
+      Number.parseInt(second, 10),
+      Number.parseInt(millisecond.padEnd(3, "0"), 10),
+    ) + timezoneOffsetMinutes * 60 * 1000,
+  );
+}
+
+export function parseDateInputWithOffset(
+  input: string,
+  timezoneOffsetMinutes = 0,
+  endOfDay = false,
+) {
+  const trimmed = input.trim();
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!match) {
+    return new Date(trimmed);
+  }
+
+  const [, year, month, day] = match;
+  const utcValue =
+    Date.UTC(
+      Number.parseInt(year, 10),
+      Number.parseInt(month, 10) - 1,
+      Number.parseInt(day, 10),
+      endOfDay ? 23 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 999 : 0,
+    ) + timezoneOffsetMinutes * 60 * 1000;
+
+  return new Date(utcValue);
+}
+
 export function isEventRepeatFrequency(value: string): value is EventRepeatFrequency {
   return eventRepeatOptions.some((option) => option.value === value);
 }
@@ -143,16 +207,16 @@ function addRecurringOffset(date: Date, frequency: Exclude<EventRepeatFrequency,
   const next = new Date(date);
 
   if (frequency === "daily") {
-    next.setDate(next.getDate() + 1);
+    next.setUTCDate(next.getUTCDate() + 1);
     return next;
   }
 
   if (frequency === "weekly") {
-    next.setDate(next.getDate() + 7);
+    next.setUTCDate(next.getUTCDate() + 7);
     return next;
   }
 
-  next.setMonth(next.getMonth() + 1);
+  next.setUTCMonth(next.getUTCMonth() + 1);
   return next;
 }
 
@@ -173,7 +237,6 @@ export function buildRecurringDates(input: {
   }
 
   const until = new Date(repeatUntil);
-  until.setHours(23, 59, 59, 999);
 
   if (until.getTime() < startAt.getTime()) {
     return null;
