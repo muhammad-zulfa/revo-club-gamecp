@@ -244,20 +244,16 @@ function getEventCategoryLabel(category: EventCategory) {
   return "Other";
 }
 
+function toDiscordTimestamp(date: Date, style: "d" | "D" | "f" | "F" | "t" | "T") {
+  return `<t:${Math.floor(date.getTime() / 1000)}:${style}>`;
+}
+
 function formatDiscordEventDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
+  return toDiscordTimestamp(date, "D");
 }
 
 function formatDiscordEventTime(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
+  return toDiscordTimestamp(date, "t");
 }
 
 function canUseEventJoinAction(endAt: Date, now = new Date()) {
