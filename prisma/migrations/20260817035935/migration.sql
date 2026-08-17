@@ -1,0 +1,3 @@
+-- Placeholder migration restored to match the database migration history.
+-- The original migration file is not present in this workspace, but the
+-- database has already recorded it as applied.
