@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import WebSocket from "ws";
 import { getConfiguredAttendanceMinutes, markAttendanceDmSent, recordAttendanceJoin, recordAttendanceLeave, refreshActiveEventAttendances } from "@/lib/event-attendance";
 import { sendDiscordAttendancePrompt } from "@/lib/discord";
+import { dispatchDueEventReminders } from "@/lib/event-reminders";
 import { getDiscordSettings } from "@/lib/settings";
 
 type GatewayHelloPayload = {
@@ -423,11 +424,31 @@ class DiscordAttendanceBot {
       clearInterval(this.maintenanceTimer);
     }
 
+    void dispatchDueEventReminders(new Date())
+      .then((result) => {
+        if (result.sent || result.failed) {
+          console.log("[attendance-bot] initial reminder dispatch", result);
+        }
+      })
+      .catch((error) => {
+        console.error("[attendance-bot] initial reminder dispatch failed", error);
+      });
+
     void refreshActiveEventAttendances(new Date()).catch((error) => {
       console.error("[attendance-bot] initial attendance refresh failed", error);
     });
 
     this.maintenanceTimer = setInterval(() => {
+      void dispatchDueEventReminders(new Date())
+        .then((result) => {
+          if (result.sent || result.failed) {
+            console.log("[attendance-bot] scheduled reminder dispatch", result);
+          }
+        })
+        .catch((error) => {
+          console.error("[attendance-bot] scheduled reminder dispatch failed", error);
+        });
+
       void refreshActiveEventAttendances(new Date()).catch((error) => {
         console.error("[attendance-bot] attendance refresh failed", error);
       });
