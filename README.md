@@ -94,3 +94,46 @@ Important: a standard Discord channel webhook can post registration alerts, but 
 This project does **not** automatically verify guild membership from Discord. An admin still needs to confirm that during the Discord call or chat before approving.
 
 Applicants only need to provide their Discord handle during registration.
+
+## Railway deploy for the attendance bot
+
+This repo includes a long-running Discord voice attendance worker in [scripts/discord-attendance-bot.ts](/Users/macbookpro/Downloads/rf-guild-crm/scripts/discord-attendance-bot.ts:1). It should run on an always-on worker host such as Railway, not on Vercel.
+
+Files included for Railway:
+
+- `Dockerfile`
+- `.dockerignore`
+- `railway.json`
+
+Bot-only deploy checklist:
+
+1. Create a new Railway service from this repo.
+2. Confirm Railway uses the included `Dockerfile`.
+3. Set the service environment variables:
+   - `DATABASE_URL`
+   - `DISCORD_BOT_TOKEN`
+   - `DISCORD_GUILD_ID`
+   - `DISCORD_EVENT_ATTENDANCE_MINUTES` optional, defaults to `10`
+   - `APP_BASE_URL` optional, recommended if your Discord flows also rely on your deployed web app URL
+4. Make sure the database already has the app schema migrated.
+   - If needed, run migrations separately from the web app side with `npm run prisma:deploy`.
+5. In the Discord Developer Portal:
+   - add the bot to your server
+   - enable the intents needed for guild and voice state events for this bot configuration
+   - make sure the bot can view and connect to the relevant voice channels
+6. Deploy the Railway service.
+7. Check the Railway logs for:
+   - `[attendance-bot] gateway connected`
+   - `[attendance-bot] ready`
+
+Default Railway start command:
+
+```bash
+npm run discord:attendance-bot
+```
+
+Useful local test:
+
+```bash
+npm run discord:attendance-bot
+```

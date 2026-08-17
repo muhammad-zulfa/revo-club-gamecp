@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.local
+.next_backup_1786937909
+README.md
