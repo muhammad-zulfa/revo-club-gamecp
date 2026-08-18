@@ -31,7 +31,6 @@ export async function POST(
             userId: true,
             discordId: true,
             qualifiedAt: true,
-            confirmedAt: true,
           },
         },
       },
@@ -53,12 +52,10 @@ export async function POST(
       throw new Error("No linked warehouse item GP value is available for this event.");
     }
 
-    const eligibleAttendances = event.attendees.filter(
-      (attendee) => attendee.qualifiedAt || attendee.confirmedAt,
-    );
+    const eligibleAttendances = event.attendees.filter((attendee) => attendee.qualifiedAt);
 
     if (!eligibleAttendances.length) {
-      throw new Error("No eligible participants were found. Only present or manually confirmed members can receive the bonus.");
+      throw new Error("No eligible participants were found. Only members who met the attendance minimum can receive the bonus.");
     }
 
     const participants = await prisma.user.findMany({

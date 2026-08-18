@@ -49,6 +49,7 @@ export async function POST(req: Request) {
   const startIndex = headers.indexOf("startat");
   const endIndex = headers.indexOf("endat");
   const descriptionIndex = headers.indexOf("description");
+  const attendanceMinutesRequiredIndex = headers.indexOf("attendanceminutesrequired");
 
   if (titleIndex === -1 || categoryIndex === -1 || startIndex === -1 || endIndex === -1) {
     return NextResponse.redirect(new URL("/events?error=csv", req.url), 303);
@@ -69,12 +70,32 @@ export async function POST(req: Request) {
       return null;
     }
 
+    const attendanceMinutesRequiredValue =
+      attendanceMinutesRequiredIndex === -1
+        ? ""
+        : String(row[attendanceMinutesRequiredIndex] ?? "").trim();
+    const attendanceMinutesRequired = attendanceMinutesRequiredValue
+      ? Number.parseInt(attendanceMinutesRequiredValue, 10)
+      : null;
+
+    if (
+      attendanceMinutesRequiredValue &&
+      (
+        attendanceMinutesRequired === null ||
+        !Number.isFinite(attendanceMinutesRequired) ||
+        attendanceMinutesRequired <= 0
+      )
+    ) {
+      return null;
+    }
+
     return {
       title: row[titleIndex],
       category: normalizeCategory(row[categoryIndex] ?? ""),
       description: descriptionIndex === -1 ? null : row[descriptionIndex] || null,
       startAt: parsedStartAt,
       endAt: parsedEndAt,
+      attendanceMinutesRequired,
       createdById: admin.userId === "env-admin" ? null : admin.userId,
     };
   }).filter((event): event is {
@@ -83,6 +104,7 @@ export async function POST(req: Request) {
     description: string | null;
     startAt: Date;
     endAt: Date;
+    attendanceMinutesRequired: number | null;
     createdById: string | null;
   } => Boolean(event));
 

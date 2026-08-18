@@ -9,6 +9,7 @@ type EventInput = {
   category: EventCategory;
   startAt: Date;
   endAt: Date;
+  attendanceMinutesRequired: number | null;
   discordVoiceChannelId?: string | null;
   createdById: string | null;
 };

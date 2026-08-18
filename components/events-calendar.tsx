@@ -38,6 +38,7 @@ type CalendarEvent = {
   category: "PIT_BOSS" | "CHIP_WAR" | "GVG" | "OTHER";
   startAt: string;
   endAt: string;
+  attendanceMinutesRequired: number | null;
   bonusDistribution?: {
     distributedAt: string | null;
     participantCount: number | null;
@@ -77,6 +78,7 @@ type CalendarEventRecord = {
   category: CalendarEvent["category"];
   start: Date;
   end: Date;
+  attendanceMinutesRequired: number | null;
   bonusDistribution?: CalendarEvent["bonusDistribution"];
   warehouseSummary?: CalendarEvent["warehouseSummary"];
   attendanceSummary?: CalendarEvent["attendanceSummary"];
@@ -455,6 +457,9 @@ function EventCard({
                 <div className="leading-6 text-slate-500">
                   Manual confirmations: {event.attendanceSummary.confirmed}
                 </div>
+                <div className="leading-6 text-slate-500">
+                  Minimum minutes required: {event.attendanceMinutesRequired ?? "Default setting"}
+                </div>
               </div>
             </div>
           ) : null}
@@ -760,6 +765,7 @@ export function EventsCalendar({
     category: event.category,
     start: new Date(event.startAt),
     end: new Date(event.endAt),
+    attendanceMinutesRequired: event.attendanceMinutesRequired,
     attendanceSummary: event.attendanceSummary,
     bonusDistribution: event.bonusDistribution,
     warehouseSummary: event.warehouseSummary,

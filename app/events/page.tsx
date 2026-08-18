@@ -94,6 +94,8 @@ export default async function EventsPage({
             ? "End time must be after start time."
             : params.error === "repeat"
               ? "Choose a valid repeat option and a repeat-until date for recurring events."
+              : params.error === "attendance"
+                ? "Attendance minutes override must be a positive whole number."
             : params.error === "csv"
               ? "Upload a valid CSV with title, category, startAt, and endAt columns."
               : undefined;
@@ -158,6 +160,7 @@ export default async function EventsPage({
                 category: event.category,
                 startAt: event.startAt.toISOString(),
                 endAt: event.endAt.toISOString(),
+                attendanceMinutesRequired: event.attendanceMinutesRequired,
                 bonusDistribution: {
                   distributedAt: event.bonusDistributedAt?.toISOString() ?? null,
                   participantCount: event.bonusParticipantCount ?? null,
@@ -260,6 +263,21 @@ export default async function EventsPage({
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
                   />
                 </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-slate-600">
+                    Attendance minutes override
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    name="attendanceMinutesRequired"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
+                  />
+                  <span className="mt-1 block text-xs text-slate-400">
+                    Optional. Leave blank to use the global attendance minutes setting.
+                  </span>
+                </label>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="mb-1.5 block text-sm font-medium text-slate-600">
@@ -348,7 +366,7 @@ export default async function EventsPage({
               <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                 Required columns: <code>title</code>, <code>category</code>,{" "}
                 <code>startAt</code>, <code>endAt</code>. Optional:{" "}
-                <code>description</code>.
+                <code>description</code>, <code>attendanceMinutesRequired</code>.
               </div>
               <form
                 action="/api/admin/events/import"

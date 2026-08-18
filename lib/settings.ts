@@ -23,6 +23,7 @@ export type DiscordSettings = {
   discordOAuthClientId: string;
   discordOAuthClientSecret: string;
   discordGuildId: string;
+  warehouseMemberSaleFeePercent: number;
 };
 
 const defaultSettings: DiscordSettings = {
@@ -47,7 +48,8 @@ const defaultSettings: DiscordSettings = {
   discordBotToken: "",
   discordOAuthClientId: "",
   discordOAuthClientSecret: "",
-  discordGuildId: ""
+  discordGuildId: "",
+  warehouseMemberSaleFeePercent: 0,
 };
 
 export async function getDiscordSettings(): Promise<DiscordSettings> {
@@ -76,7 +78,12 @@ export async function getDiscordSettings(): Promise<DiscordSettings> {
       discordBotToken: config?.discordBotToken ?? process.env.DISCORD_BOT_TOKEN ?? "",
       discordOAuthClientId: config?.discordOAuthClientId ?? process.env.DISCORD_OAUTH_CLIENT_ID ?? "",
       discordOAuthClientSecret: config?.discordOAuthClientSecret ?? process.env.DISCORD_OAUTH_CLIENT_SECRET ?? "",
-      discordGuildId: config?.discordGuildId ?? process.env.DISCORD_GUILD_ID ?? ""
+      discordGuildId: config?.discordGuildId ?? process.env.DISCORD_GUILD_ID ?? "",
+      warehouseMemberSaleFeePercent: Number(
+        config?.warehouseMemberSaleFeePercent
+          ?? process.env.WAREHOUSE_MEMBER_SALE_FEE_PERCENT
+          ?? 0,
+      ),
     };
   } catch {
     return {
@@ -102,7 +109,10 @@ export async function getDiscordSettings(): Promise<DiscordSettings> {
       discordBotToken: process.env.DISCORD_BOT_TOKEN ?? "",
       discordOAuthClientId: process.env.DISCORD_OAUTH_CLIENT_ID ?? "",
       discordOAuthClientSecret: process.env.DISCORD_OAUTH_CLIENT_SECRET ?? "",
-      discordGuildId: process.env.DISCORD_GUILD_ID ?? ""
+      discordGuildId: process.env.DISCORD_GUILD_ID ?? "",
+      warehouseMemberSaleFeePercent: Number(
+        process.env.WAREHOUSE_MEMBER_SALE_FEE_PERCENT ?? 0,
+      ),
     };
   }
 }

@@ -117,6 +117,7 @@ model AppConfig {
   discordOAuthClientId     String?
   discordOAuthClientSecret String?
   discordGuildId           String?
+  warehouseMemberSaleFeePercent Float @default(0)
   guildGpBalance           Float    @default(0)
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
@@ -168,6 +169,7 @@ model Event {
   category    EventCategory @default(OTHER)
   startAt     DateTime
   endAt       DateTime
+  attendanceMinutesRequired Int?
   discordVoiceChannelId String?
   discordReminderSentAt DateTime?
   bonusDistributedAt DateTime?

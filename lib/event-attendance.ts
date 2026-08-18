@@ -18,6 +18,26 @@ export async function getConfiguredAttendanceSeconds() {
   return (await getConfiguredAttendanceMinutes()) * 60;
 }
 
+export async function getAttendanceMinutesForEvent(event: {
+  attendanceMinutesRequired: number | null;
+}) {
+  if (
+    event.attendanceMinutesRequired &&
+    Number.isFinite(event.attendanceMinutesRequired) &&
+    event.attendanceMinutesRequired > 0
+  ) {
+    return event.attendanceMinutesRequired;
+  }
+
+  return getConfiguredAttendanceMinutes();
+}
+
+export async function getAttendanceSecondsForEvent(event: {
+  attendanceMinutesRequired: number | null;
+}) {
+  return (await getAttendanceMinutesForEvent(event)) * 60;
+}
+
 export async function findActiveEventForVoiceChannel(
   voiceChannelId: string,
   at = new Date(),
@@ -27,6 +47,13 @@ export async function findActiveEventForVoiceChannel(
       discordVoiceChannelId: voiceChannelId,
       startAt: { lte: at },
       endAt: { gte: at },
+    },
+    select: {
+      id: true,
+      title: true,
+      startAt: true,
+      endAt: true,
+      attendanceMinutesRequired: true,
     },
     orderBy: [{ startAt: "desc" }],
   });
@@ -105,7 +132,6 @@ export async function recordAttendanceLeave(input: {
   leftAt?: Date;
 }) {
   const leftAt = input.leftAt ?? new Date();
-  const minSeconds = await getConfiguredAttendanceSeconds();
   const attendance = await prisma.eventAttendance.findFirst({
     where: {
       discordId: input.discordId,
@@ -121,6 +147,8 @@ export async function recordAttendanceLeave(input: {
   if (!attendance || !attendance.lastJoinedAt) {
     return null;
   }
+
+  const minSeconds = await getAttendanceSecondsForEvent(attendance.event);
 
   const sessionEnd =
     leftAt > attendance.event.endAt ? attendance.event.endAt : leftAt;
@@ -147,7 +175,6 @@ export async function recordAttendanceLeave(input: {
 }
 
 export async function refreshActiveEventAttendances(now = new Date()) {
-  const minSeconds = await getConfiguredAttendanceSeconds();
   const activeAttendances = await prisma.eventAttendance.findMany({
     where: {
       lastJoinedAt: { not: null },
@@ -162,6 +189,7 @@ export async function refreshActiveEventAttendances(now = new Date()) {
 
   for (const attendance of activeAttendances) {
     if (!attendance.lastJoinedAt) continue;
+    const minSeconds = await getAttendanceSecondsForEvent(attendance.event);
 
     const effectiveNow = now > attendance.event.endAt ? attendance.event.endAt : now;
     const totalSecondsInVoice =
@@ -224,7 +252,7 @@ export async function confirmAttendanceFromDiscord(input: {
     return null;
   }
 
-  const minSeconds = await getConfiguredAttendanceSeconds();
+  const minSeconds = await getAttendanceSecondsForEvent(attendance.event);
   const effectiveNow =
     confirmedAt > attendance.event.endAt ? attendance.event.endAt : confirmedAt;
   const runningSeconds = attendance.lastJoinedAt

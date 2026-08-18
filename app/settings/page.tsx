@@ -24,7 +24,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       <Card className="max-w-4xl p-7">
         <h2 className="font-bold">Discord registration settings</h2>
         <p className="mt-1 text-sm text-slate-500">These settings control the public app domain, Discord join prompt on registration, and where approval or trade notifications get posted.</p>
-        {params.saved === "1" ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">Discord settings saved.</div> : null}
+        {params.saved === "1" ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">Settings saved.</div> : null}
         <form action="/api/admin/settings/discord" method="post" className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="block md:col-span-2">
             <span className="mb-1.5 block text-sm font-medium text-slate-600">App base URL</span>
@@ -87,6 +87,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             <span className="mb-1.5 block text-sm font-medium text-slate-600">Attendance minutes required</span>
             <input name="discordEventAttendanceMinutes" defaultValue={discordSettings.discordEventAttendanceMinutes} className="w-full rounded-xl border border-slate-200 px-4 py-3"/>
             <span className="mt-1 block text-xs text-slate-400">Members are auto-marked present after staying in the event voice channel for at least this many minutes.</span>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-slate-600">Member sale fee percent</span>
+            <input name="warehouseMemberSaleFeePercent" defaultValue={discordSettings.warehouseMemberSaleFeePercent} className="w-full rounded-xl border border-slate-200 px-4 py-3"/>
+            <span className="mt-1 block text-xs text-slate-400">When a guild member sale item is bought with GP inside the warehouse, this percentage is credited to the guild GP balance.</span>
           </label>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-600">Approval webhook URL</span>

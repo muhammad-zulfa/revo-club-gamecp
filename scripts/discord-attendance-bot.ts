@@ -1,6 +1,12 @@
 import { existsSync } from "node:fs";
 import WebSocket from "ws";
-import { getConfiguredAttendanceMinutes, markAttendanceDmSent, recordAttendanceJoin, recordAttendanceLeave, refreshActiveEventAttendances } from "@/lib/event-attendance";
+import {
+  getAttendanceMinutesForEvent,
+  markAttendanceDmSent,
+  recordAttendanceJoin,
+  recordAttendanceLeave,
+  refreshActiveEventAttendances,
+} from "@/lib/event-attendance";
 import { sendDiscordAttendancePrompt } from "@/lib/discord";
 import { dispatchDueEventReminders } from "@/lib/event-reminders";
 import { getDiscordSettings } from "@/lib/settings";
@@ -391,7 +397,7 @@ class DiscordAttendanceBot {
       });
 
       if (result?.attendance && result.event && result.shouldSendDm) {
-        const attendanceMinutes = await getConfiguredAttendanceMinutes();
+        const attendanceMinutes = await getAttendanceMinutesForEvent(result.event);
 
         try {
           const sent = await sendDiscordAttendancePrompt({

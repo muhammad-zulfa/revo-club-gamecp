@@ -28,6 +28,9 @@ export async function POST(req: Request) {
   const sendDiscordReminder = String(form.get("sendDiscordReminder") ?? "") === "on";
   const repeat = String(form.get("repeat") ?? "none").trim();
   const repeatUntil = String(form.get("repeatUntil") ?? "").trim();
+  const attendanceMinutesRequiredInput = String(
+    form.get("attendanceMinutesRequired") ?? "",
+  ).trim();
   const timezoneOffsetMinutes = Number.parseInt(
     String(form.get("timezoneOffsetMinutes") ?? "0"),
     10,
@@ -54,6 +57,21 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL("/events?error=repeat", req.url), 303);
   }
 
+  const attendanceMinutesRequired = attendanceMinutesRequiredInput
+    ? Number.parseInt(attendanceMinutesRequiredInput, 10)
+    : null;
+
+  if (
+    attendanceMinutesRequiredInput &&
+    (
+      attendanceMinutesRequired === null ||
+      !Number.isFinite(attendanceMinutesRequired) ||
+      attendanceMinutesRequired <= 0
+    )
+  ) {
+    return NextResponse.redirect(new URL("/events?error=attendance", req.url), 303);
+  }
+
   const parsedRepeatUntil = repeatUntil
     ? parseDateInputWithOffset(
         repeatUntil,
@@ -76,6 +94,7 @@ export async function POST(req: Request) {
     title,
     description: description || null,
     category,
+    attendanceMinutesRequired,
     discordVoiceChannelId: discordVoiceChannelId || null,
     createdById: admin.userId === "env-admin" ? null : admin.userId,
   };

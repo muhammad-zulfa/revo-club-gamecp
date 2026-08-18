@@ -10,6 +10,9 @@ export async function POST(req: Request) {
   }
 
   const form = await req.formData();
+  const warehouseMemberSaleFeePercentInput = Number.parseFloat(
+    String(form.get("warehouseMemberSaleFeePercent") ?? "").trim(),
+  );
 
   await saveDiscordSettings({
     appBaseUrl: String(form.get("appBaseUrl") ?? "").trim(),
@@ -33,7 +36,16 @@ export async function POST(req: Request) {
     discordBotToken: String(form.get("discordBotToken") ?? "").trim(),
     discordOAuthClientId: String(form.get("discordOAuthClientId") ?? "").trim(),
     discordOAuthClientSecret: String(form.get("discordOAuthClientSecret") ?? "").trim(),
-    discordGuildId: String(form.get("discordGuildId") ?? "").trim()
+    discordGuildId: String(form.get("discordGuildId") ?? "").trim(),
+    warehouseMemberSaleFeePercent: Math.min(
+      100,
+      Math.max(
+        0,
+        Number.isFinite(warehouseMemberSaleFeePercentInput)
+          ? warehouseMemberSaleFeePercentInput
+          : 0,
+      ),
+    ),
   });
 
   return NextResponse.redirect(new URL("/settings?saved=1", req.url), 303);
