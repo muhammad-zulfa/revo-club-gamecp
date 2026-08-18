@@ -1,8 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { extname, join } from "node:path";
-import { randomUUID } from "node:crypto";
+import { extname } from "node:path";
 import { NextResponse } from "next/server";
 import { WarehouseItemSource } from "@prisma/client";
+import { put } from "@vercel/blob";
 import { getSession } from "@/lib/auth";
 import { parseCurrencyUnit, parseWarehouseSource } from "@/lib/warehouse";
 import { prisma } from "@/lib/prisma";
@@ -10,13 +9,15 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 async function saveWarehouseImage(file: File) {
-  const bytes = Buffer.from(await file.arrayBuffer());
   const extension = extname(file.name || "").toLowerCase() || ".png";
-  const filename = `${randomUUID()}${extension}`;
-  const uploadDir = join(process.cwd(), "public", "uploads", "warehouse");
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(join(uploadDir, filename), bytes);
-  return `/uploads/warehouse/${filename}`;
+  const pathname = `warehouse/${Date.now()}-${file.name || `upload${extension}`}`;
+  const blob = await put(pathname, file, {
+    access: "public",
+    addRandomSuffix: true,
+    contentType: file.type || undefined,
+  });
+
+  return blob.url;
 }
 
 export async function POST(req: Request) {
@@ -55,7 +56,12 @@ export async function POST(req: Request) {
   let imageUrl = imageUrlInput;
 
   if (!imageUrl && imageFile instanceof File && imageFile.size > 0) {
-    imageUrl = await saveWarehouseImage(imageFile);
+    try {
+      imageUrl = await saveWarehouseImage(imageFile);
+    } catch (error) {
+      console.error("Warehouse image upload failed:", error);
+      return NextResponse.redirect(new URL("/warehouse?error=upload", req.url), 303);
+    }
   }
 
   if (!imageUrl) {

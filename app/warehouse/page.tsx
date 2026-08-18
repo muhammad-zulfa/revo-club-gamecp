@@ -63,8 +63,10 @@ export default async function WarehousePage({
           ? "Warehouse item purchased with GP."
         : params.error === "missing"
           ? "Fill in name, picture, price, and source."
-          : params.error === "image"
+        : params.error === "image"
             ? "Add an image URL or upload a picture for the item."
+            : params.error === "upload"
+              ? "Image upload failed. Check that Vercel Blob is connected and the blob token is available."
             : params.error === "event"
               ? "Pit Boss loot must be linked to its source event."
               : params.error === "status"
@@ -369,6 +371,9 @@ export default async function WarehousePage({
                     accept="image/*"
                     className="block w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:font-semibold"
                   />
+                  <span className="mt-1 block text-xs text-slate-400">
+                    Uploaded images are stored in Vercel Blob when Blob storage is configured.
+                  </span>
                 </label>
                 <label className="block">
                   <span className="mb-1.5 block text-sm font-medium text-slate-600">Or picture URL</span>

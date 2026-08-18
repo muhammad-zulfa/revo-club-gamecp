@@ -44,23 +44,17 @@ export function buildEventReminderData(eventId: string, startAt: Date, offsets: 
 export async function createEventWithReminders(input: EventInput) {
   const offsets = await getConfiguredReminderOffsets();
 
-  return prisma.event.create({
-    data: {
-      ...input,
-      reminders: offsets.length
-        ? {
-            createMany: {
-              data: buildEventReminderData("pending", input.startAt, offsets).map(
-                ({ minutesOffset, scheduledAt }) => ({
-                  minutesOffset,
-                  scheduledAt,
-                }),
-              ),
-            },
-          }
-        : undefined,
-    },
+  const event = await prisma.event.create({
+    data: input,
   });
+
+  if (offsets.length) {
+    await prisma.eventReminder.createMany({
+      data: buildEventReminderData(event.id, event.startAt, offsets),
+    });
+  }
+
+  return event;
 }
 
 export async function createEventsWithReminders(inputs: EventInput[]) {
@@ -71,22 +65,15 @@ export async function createEventsWithReminders(inputs: EventInput[]) {
 
   for (const input of inputs) {
     const event = await prisma.event.create({
-      data: {
-        ...input,
-        reminders: offsets.length
-          ? {
-              createMany: {
-                data: buildEventReminderData("pending", input.startAt, offsets).map(
-                  ({ minutesOffset, scheduledAt }) => ({
-                    minutesOffset,
-                    scheduledAt,
-                  }),
-                ),
-              },
-            }
-          : undefined,
-      },
+      data: input,
     });
+
+    if (offsets.length) {
+      await prisma.eventReminder.createMany({
+        data: buildEventReminderData(event.id, event.startAt, offsets),
+      });
+    }
+
     events.push(event);
   }
 
