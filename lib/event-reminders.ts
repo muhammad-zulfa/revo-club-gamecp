@@ -44,18 +44,22 @@ export function buildEventReminderData(eventId: string, startAt: Date, offsets: 
 export async function createEventWithReminders(input: EventInput) {
   const offsets = await getConfiguredReminderOffsets();
 
-  return prisma.$transaction(async (tx) => {
-    const event = await tx.event.create({
-      data: input,
-    });
-
-    if (offsets.length) {
-      await tx.eventReminder.createMany({
-        data: buildEventReminderData(event.id, event.startAt, offsets),
-      });
-    }
-
-    return event;
+  return prisma.event.create({
+    data: {
+      ...input,
+      reminders: offsets.length
+        ? {
+            createMany: {
+              data: buildEventReminderData("pending", input.startAt, offsets).map(
+                ({ minutesOffset, scheduledAt }) => ({
+                  minutesOffset,
+                  scheduledAt,
+                }),
+              ),
+            },
+          }
+        : undefined,
+    },
   });
 }
 
@@ -63,23 +67,30 @@ export async function createEventsWithReminders(inputs: EventInput[]) {
   if (!inputs.length) return [];
 
   const offsets = await getConfiguredReminderOffsets();
+  const events = [];
 
-  return prisma.$transaction(async (tx) => {
-    const events = [];
+  for (const input of inputs) {
+    const event = await prisma.event.create({
+      data: {
+        ...input,
+        reminders: offsets.length
+          ? {
+              createMany: {
+                data: buildEventReminderData("pending", input.startAt, offsets).map(
+                  ({ minutesOffset, scheduledAt }) => ({
+                    minutesOffset,
+                    scheduledAt,
+                  }),
+                ),
+              },
+            }
+          : undefined,
+      },
+    });
+    events.push(event);
+  }
 
-    for (const input of inputs) {
-      const event = await tx.event.create({ data: input });
-      events.push(event);
-
-      if (offsets.length) {
-        await tx.eventReminder.createMany({
-          data: buildEventReminderData(event.id, event.startAt, offsets),
-        });
-      }
-    }
-
-    return events;
-  });
+  return events;
 }
 
 function getReminderTimingLabel(minutesOffset: number) {
