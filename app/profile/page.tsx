@@ -1,6 +1,7 @@
-import { Race, UserRole } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { UserCircle2 } from "lucide-react";
+import { ProfileForm } from "@/components/profile-form";
 import { Shell } from "@/components/shell";
 import { Card } from "@/components/ui";
 import { getSession } from "@/lib/auth";
@@ -81,53 +82,12 @@ export default async function ProfilePage({
             </div>
           ) : null}
 
-          <form action="/api/profile" method="post" className="grid gap-4 md:grid-cols-2">
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-600">In-game nickname</span>
-              <input
-                name="nickname"
-                defaultValue={member.nickname}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-600">Level</span>
-              <input
-                type="number"
-                min="1"
-                name="level"
-                defaultValue={member.level}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-600">Class</span>
-              <input
-                name="className"
-                defaultValue={member.className === "Unset" ? "" : member.className}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-600">Race</span>
-              <select
-                name="race"
-                defaultValue={member.race}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-              >
-                {Object.values(Race).map((race) => (
-                  <option key={race} value={race}>
-                    {race}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="md:col-span-2">
-              <button className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
-                Save profile
-              </button>
-            </div>
-          </form>
+          <ProfileForm
+            nickname={member.nickname}
+            level={member.level}
+            className={member.className === "Unset" ? "" : member.className}
+            race={member.race}
+          />
         </Card>
       </div>
     </Shell>

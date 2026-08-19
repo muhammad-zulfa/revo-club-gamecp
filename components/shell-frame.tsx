@@ -8,9 +8,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Coins,
+  Images,
   HandCoins,
   LayoutDashboard,
   LogOut,
+  Newspaper,
   Settings,
   Shield,
   Swords,
@@ -23,7 +25,9 @@ import { UserRole } from "@prisma/client";
 
 const nav = [
   ["Dashboard", "/dashboard", LayoutDashboard, "all"],
+  ["News", "/news", Newspaper, "all"],
   ["Events", "/events", CalendarDays, "all"],
+  ["Gallery", "/gallery", Images, "all"],
   ["Profile", "/profile", UserCircle2, "member"],
   ["GP wallet", "/gp-wallet", HandCoins, "member"],
   ["Warehouse", "/warehouse", Archive, "all"],

@@ -1,6 +1,7 @@
 import { ApprovalStatus, EventCategory } from "@prisma/client";
 import nacl from "tweetnacl";
 import { getDiscordSettings } from "@/lib/settings";
+import { truncateGalleryAttachmentLabel } from "@/lib/gallery";
 
 const DISCORD_PING = 1;
 const DISCORD_MESSAGE_COMPONENT = 3;
@@ -41,11 +42,13 @@ export async function getDiscordConfig() {
   const settings = await getDiscordSettings();
 
   return {
+    appBaseUrl: settings.appBaseUrl,
     serverName: settings.discordServerName,
     inviteUrl: settings.discordInviteUrl,
     registrationLabel: settings.discordRegistrationLabel,
     registrationChannelId: settings.discordRegistrationChannelId,
     eventChannelId: settings.discordEventChannelId,
+    newsChannelId: settings.discordNewsChannelId,
     guildTradeChannelId: settings.discordGuildTradeChannelId,
     pitBossChannelId: settings.discordPitBossChannelId,
     chipWarChannelId: settings.discordChipWarChannelId,
@@ -534,6 +537,147 @@ export async function sendDiscordGuildTradeNotification(input: {
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Discord guild trade notification failed (${response.status}): ${errorText}`);
+  }
+
+  return true;
+}
+
+export async function sendDiscordNewsNotification(input: {
+  title: string;
+  content: string;
+  tagAll: boolean;
+  recipients: Array<{
+    id: string;
+    name: string;
+    discordId?: string | null;
+    discordHandle: string;
+  }>;
+  linkedEvent?: {
+    title: string;
+    startAt: Date;
+  } | null;
+  galleryFolders?: Array<{
+    id: string;
+    name: string;
+    assetCount: number;
+  }>;
+  galleryAssets?: Array<{
+    id: string;
+    name: string;
+    url: string;
+    folderName?: string | null;
+  }>;
+  createdBy?: string | null;
+}) {
+  const { botToken, newsChannelId, memberRoleId, appBaseUrl } = await getDiscordConfig();
+
+  if (!botToken || !newsChannelId) {
+    return false;
+  }
+
+  const mentionUserIds = input.recipients
+    .map((recipient) => recipient.discordId)
+    .filter((value): value is string => Boolean(value));
+  const mentions = input.tagAll
+    ? memberRoleId
+      ? [`<@&${memberRoleId}>`]
+      : mentionUserIds.map((userId) => `<@${userId}>`)
+    : mentionUserIds.map((userId) => `<@${userId}>`);
+  const targetLabel = input.tagAll
+    ? "All members"
+    : input.recipients.length
+      ? input.recipients.map((recipient) => recipient.name).join(", ")
+      : "No tagged members";
+  const galleryUrl = appBaseUrl ? `${appBaseUrl.replace(/\/$/, "")}/gallery` : "";
+  const folderSummary = (input.galleryFolders ?? [])
+    .slice(0, 4)
+    .map((folder) => `${truncateGalleryAttachmentLabel(folder.name)} (${folder.assetCount})`)
+    .join("\n");
+  const assetSummary = (input.galleryAssets ?? [])
+    .slice(0, 4)
+    .map((asset) => `${truncateGalleryAttachmentLabel(asset.name)}${asset.folderName ? ` · ${asset.folderName}` : ""}\n${asset.url}`)
+    .join("\n\n");
+  const hasGalleryAttachments = Boolean(
+    (input.galleryFolders?.length ?? 0) || (input.galleryAssets?.length ?? 0),
+  );
+
+  const response = await fetch(`https://discord.com/api/channels/${newsChannelId}/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bot ${botToken}`,
+    },
+    body: JSON.stringify({
+      content: `${mentions.length ? `${mentions.join(" ")} ` : ""}**${input.title}**`,
+      allowed_mentions: {
+        parse: [],
+        roles: input.tagAll && memberRoleId ? [memberRoleId] : [],
+        users: mentionUserIds,
+      },
+      embeds: [
+        {
+          title: input.title,
+          color: 2322672,
+          description: input.content,
+          fields: [
+            { name: "Audience", value: targetLabel, inline: false },
+            ...(input.linkedEvent
+              ? [{
+                  name: "Linked event",
+                  value: `${input.linkedEvent.title} · ${formatDiscordEventDate(input.linkedEvent.startAt)} ${formatDiscordEventTime(input.linkedEvent.startAt)}`,
+                  inline: false,
+                }]
+              : []),
+            ...(input.createdBy
+              ? [{ name: "Posted by", value: input.createdBy, inline: true }]
+              : []),
+            ...(input.galleryFolders?.length
+              ? [{
+                  name: `Gallery folders (${input.galleryFolders.length})`,
+                  value: folderSummary,
+                  inline: false,
+                }]
+              : []),
+            ...(input.galleryAssets?.length
+              ? [{
+                  name: `Media files (${input.galleryAssets.length})`,
+                  value: assetSummary,
+                  inline: false,
+                }]
+              : []),
+            ...(hasGalleryAttachments && galleryUrl
+              ? [{
+                  name: "Open gallery",
+                  value: galleryUrl,
+                  inline: false,
+                }]
+              : []),
+          ],
+        },
+      ],
+      ...(hasGalleryAttachments && galleryUrl
+        ? {
+            components: [
+              {
+                type: 1,
+                components: [
+                  {
+                    type: 2,
+                    style: 5,
+                    label: "View gallery",
+                    url: galleryUrl,
+                  },
+                ],
+              },
+            ],
+          }
+        : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Discord news notification failed (${response.status}): ${errorText}`);
   }
 
   return true;

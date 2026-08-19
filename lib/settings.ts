@@ -7,6 +7,7 @@ export type DiscordSettings = {
   discordRegistrationLabel: string;
   discordRegistrationChannelId: string;
   discordEventChannelId: string;
+  discordNewsChannelId: string;
   discordGuildTradeChannelId: string;
   discordPitBossChannelId: string;
   discordChipWarChannelId: string;
@@ -33,6 +34,7 @@ const defaultSettings: DiscordSettings = {
   discordRegistrationLabel: "Registration",
   discordRegistrationChannelId: "",
   discordEventChannelId: "",
+  discordNewsChannelId: "",
   discordGuildTradeChannelId: "",
   discordPitBossChannelId: "",
   discordChipWarChannelId: "",
@@ -63,6 +65,7 @@ export async function getDiscordSettings(): Promise<DiscordSettings> {
       discordRegistrationLabel: config?.discordRegistrationLabel ?? process.env.DISCORD_REGISTRATION_LABEL ?? "Registration",
       discordRegistrationChannelId: config?.discordRegistrationChannelId ?? process.env.DISCORD_REGISTRATION_CHANNEL_ID ?? "",
       discordEventChannelId: config?.discordEventChannelId ?? process.env.DISCORD_EVENT_CHANNEL_ID ?? "",
+      discordNewsChannelId: config?.discordNewsChannelId ?? process.env.DISCORD_NEWS_CHANNEL_ID ?? "",
       discordGuildTradeChannelId: config?.discordGuildTradeChannelId ?? process.env.DISCORD_GUILD_TRADE_CHANNEL_ID ?? "",
       discordPitBossChannelId: config?.discordPitBossChannelId ?? process.env.DISCORD_PIT_BOSS_CHANNEL_ID ?? "",
       discordChipWarChannelId: config?.discordChipWarChannelId ?? process.env.DISCORD_CHIP_WAR_CHANNEL_ID ?? "",
@@ -94,6 +97,7 @@ export async function getDiscordSettings(): Promise<DiscordSettings> {
       discordRegistrationLabel: process.env.DISCORD_REGISTRATION_LABEL ?? "Registration",
       discordRegistrationChannelId: process.env.DISCORD_REGISTRATION_CHANNEL_ID ?? "",
       discordEventChannelId: process.env.DISCORD_EVENT_CHANNEL_ID ?? "",
+      discordNewsChannelId: process.env.DISCORD_NEWS_CHANNEL_ID ?? "",
       discordGuildTradeChannelId: process.env.DISCORD_GUILD_TRADE_CHANNEL_ID ?? "",
       discordPitBossChannelId: process.env.DISCORD_PIT_BOSS_CHANNEL_ID ?? "",
       discordChipWarChannelId: process.env.DISCORD_CHIP_WAR_CHANNEL_ID ?? "",

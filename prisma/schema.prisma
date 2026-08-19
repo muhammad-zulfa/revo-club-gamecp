@@ -62,6 +62,11 @@ enum CurrencyUnit {
   IDR
 }
 
+enum GalleryAssetType {
+  IMAGE
+  VIDEO
+}
+
 enum GpLedgerEntryType {
   TRANSFER_SENT
   TRANSFER_RECEIVED
@@ -86,6 +91,10 @@ model User {
   events         Event[]
   attendances    EventAttendance[]
   warehouseItems WarehouseItem[]
+  newsItems      News[]
+  newsRecipients NewsRecipient[]
+  galleryFolders GalleryFolder[]
+  galleryAssets  GalleryAsset[]
   guildMember    GuildMember?
   gpLedgerEntries GpLedgerEntry[] @relation("GpLedgerOwner")
   gpRelatedEntries GpLedgerEntry[] @relation("GpLedgerRelatedUser")
@@ -101,6 +110,7 @@ model AppConfig {
   discordRegistrationLabel String?
   discordRegistrationChannelId String?
   discordEventChannelId    String?
+  discordNewsChannelId     String?
   discordGuildTradeChannelId String?
   discordPitBossChannelId  String?
   discordChipWarChannelId  String?
@@ -179,6 +189,7 @@ model Event {
   bonusPerParticipantGp Float?
   reminders   EventReminder[]
   attendees   EventAttendance[]
+  newsItems   News[]
   warehouseItems WarehouseItem[]
   gpLedgerEntries GpLedgerEntry[]
   createdById String?
@@ -188,6 +199,94 @@ model Event {
 
   @@index([startAt])
   @@index([category, startAt])
+}
+
+model News {
+  id          String          @id @default(cuid())
+  title       String
+  content     String
+  tagAll      Boolean         @default(false)
+  eventId     String?
+  event       Event?          @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  createdById String?
+  createdBy   User?           @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  recipients  NewsRecipient[]
+  folderAttachments NewsGalleryFolder[]
+  assetAttachments  NewsGalleryAsset[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([createdAt])
+  @@index([eventId])
+}
+
+model NewsRecipient {
+  id        String   @id @default(cuid())
+  newsId    String
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([newsId, userId])
+  @@index([userId, createdAt])
+}
+
+model GalleryFolder {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  createdById String?
+  createdBy   User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  assets      GalleryAsset[]
+  newsItems   NewsGalleryFolder[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([createdAt])
+  @@unique([name])
+}
+
+model GalleryAsset {
+  id           String           @id @default(cuid())
+  folderId     String
+  folder       GalleryFolder    @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  name         String
+  url          String
+  type         GalleryAssetType
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String?
+  uploadedBy   User?            @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  newsItems    NewsGalleryAsset[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([folderId, createdAt])
+}
+
+model NewsGalleryFolder {
+  id        String        @id @default(cuid())
+  newsId    String
+  news      News          @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  folderId  String
+  folder    GalleryFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([newsId, folderId])
+  @@index([folderId, createdAt])
+}
+
+model NewsGalleryAsset {
+  id        String       @id @default(cuid())
+  newsId    String
+  news      News         @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  assetId   String
+  asset     GalleryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+
+  @@unique([newsId, assetId])
+  @@index([assetId, createdAt])
 }
 
 model EventReminder {

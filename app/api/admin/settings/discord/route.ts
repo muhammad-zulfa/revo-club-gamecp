@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     discordRegistrationLabel: String(form.get("discordRegistrationLabel") ?? "").trim(),
     discordRegistrationChannelId: String(form.get("discordRegistrationChannelId") ?? "").trim(),
     discordEventChannelId: String(form.get("discordEventChannelId") ?? "").trim(),
+    discordNewsChannelId: String(form.get("discordNewsChannelId") ?? "").trim(),
     discordGuildTradeChannelId: String(form.get("discordGuildTradeChannelId") ?? "").trim(),
     discordPitBossChannelId: String(form.get("discordPitBossChannelId") ?? "").trim(),
     discordChipWarChannelId: String(form.get("discordChipWarChannelId") ?? "").trim(),

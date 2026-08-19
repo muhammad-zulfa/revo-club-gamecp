@@ -53,6 +53,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             <span className="mt-1 block text-xs text-slate-400">Fallback channel for event reminders when no category-specific channel is configured.</span>
           </label>
           <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-slate-600">News channel ID</span>
+            <input name="discordNewsChannelId" defaultValue={discordSettings.discordNewsChannelId} className="w-full rounded-xl border border-slate-200 px-4 py-3"/>
+            <span className="mt-1 block text-xs text-slate-400">Used when posting guild news and information updates to Discord.</span>
+          </label>
+          <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-600">Guild trade channel ID</span>
             <input name="discordGuildTradeChannelId" defaultValue={discordSettings.discordGuildTradeChannelId} className="w-full rounded-xl border border-slate-200 px-4 py-3"/>
             <span className="mt-1 block text-xs text-slate-400">Used to notify admins when a warehouse item is sold to a member using GP.</span>

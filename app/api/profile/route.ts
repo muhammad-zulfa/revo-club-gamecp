@@ -1,6 +1,7 @@
 import { Race, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { isValidClassForRace } from "@/lib/member-profile-options";
 import { prisma } from "@/lib/prisma";
 import { ensureApprovedMemberProfile } from "@/lib/profile";
 
@@ -31,7 +32,14 @@ export async function POST(req: Request) {
   const level = Number.parseInt(String(form.get("level") ?? ""), 10);
   const race = parseRace(String(form.get("race") ?? "").trim());
 
-  if (!nickname || !className || !Number.isFinite(level) || level < 1 || !race) {
+  if (
+    !nickname ||
+    !className ||
+    !Number.isFinite(level) ||
+    level < 1 ||
+    !race ||
+    !isValidClassForRace(race, className)
+  ) {
     return NextResponse.redirect(new URL("/profile?error=invalid", req.url), 303);
   }
 

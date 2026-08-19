@@ -1,9 +1,10 @@
-import { MemberStatus, Race, UserRole } from "@prisma/client";
+import { MemberStatus, UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { Shell } from "@/components/shell";
 import { Card, Badge } from "@/components/ui";
 import { getSession } from "@/lib/auth";
 import { getMembers } from "@/lib/data";
+import { getClassOptionsForRace, MEMBER_RACE_OPTIONS } from "@/lib/member-profile-options";
 import { prisma } from "@/lib/prisma";
 import { formatCurrencyValue } from "@/lib/warehouse";
 
@@ -133,23 +134,33 @@ export default async function MembersPage({
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium text-slate-600">Class</span>
-                    <input
-                      name="className"
-                      defaultValue={member.className}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-                    />
-                  </label>
-                  <label className="block">
                     <span className="mb-1.5 block text-sm font-medium text-slate-600">Race</span>
                     <select
                       name="race"
                       defaultValue={member.race}
                       className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
                     >
-                      {Object.values(Race).map((race) => (
+                      {MEMBER_RACE_OPTIONS.map((race) => (
                         <option key={race} value={race}>
                           {race}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-slate-600">Class</span>
+                    <select
+                      name="className"
+                      defaultValue={
+                        getClassOptionsForRace(member.race).includes(member.className)
+                          ? member.className
+                          : getClassOptionsForRace(member.race)[0]
+                      }
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
+                    >
+                      {getClassOptionsForRace(member.race).map((option) => (
+                        <option key={option} value={option}>
+                          {option}
                         </option>
                       ))}
                     </select>

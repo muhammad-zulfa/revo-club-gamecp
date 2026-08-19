@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GpLedgerEntryType, MemberStatus, Race } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { isValidClassForRace } from "@/lib/member-profile-options";
 import { prisma } from "@/lib/prisma";
 
 function parseRace(value: string) {
@@ -46,6 +47,7 @@ export async function POST(
     !className ||
     !race ||
     !status ||
+    !isValidClassForRace(race, className) ||
     !Number.isFinite(gpBalance) ||
     gpBalance < 0
   ) {

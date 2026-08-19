@@ -52,6 +52,185 @@ export async function getActivities() {
   ];
 }
 
+export async function getNewsFeed() {
+  try {
+    return await prisma.news.findMany({
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+            startAt: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        recipients: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                discordHandle: true,
+                discordId: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        folderAttachments: {
+          include: {
+            folder: {
+              include: {
+                assets: {
+                  select: {
+                    id: true,
+                    type: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        assetAttachments: {
+          include: {
+            asset: {
+              include: {
+                folder: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getNewsTaggableUsers() {
+  try {
+    return await prisma.user.findMany({
+      where: {
+        approvalStatus: ApprovalStatus.APPROVED,
+      },
+      select: {
+        id: true,
+        name: true,
+        discordHandle: true,
+        discordId: true,
+      },
+      orderBy: [{ name: "asc" }],
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getEventsForNewsLinking() {
+  try {
+    return await prisma.event.findMany({
+      select: {
+        id: true,
+        title: true,
+        startAt: true,
+      },
+      orderBy: [{ startAt: "desc" }],
+      take: 80,
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getGalleryFolders() {
+  try {
+    return await prisma.galleryFolder.findMany({
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assets: {
+          orderBy: [{ createdAt: "desc" }],
+          take: 12,
+        },
+        _count: {
+          select: {
+            assets: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getGalleryFoldersForNewsAttachment() {
+  try {
+    return await prisma.galleryFolder.findMany({
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            assets: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 60,
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getGalleryAssetsForNewsAttachment() {
+  try {
+    return await prisma.galleryAsset.findMany({
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        url: true,
+        folder: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 120,
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function getEventsInRange(startAt: Date, endAt: Date) {
   try {
     const events = await prisma.event.findMany({
