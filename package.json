@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
+    "postinstall": "node -e \"const fs=require('fs'); const cp=require('child_process'); if (fs.existsSync('prisma/schema.prisma')) { cp.execSync('npx prisma generate --schema=prisma/schema.prisma', { stdio: 'inherit', shell: true }); } else { console.log('Skipping prisma generate during install because prisma/schema.prisma is not available yet.'); }\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
